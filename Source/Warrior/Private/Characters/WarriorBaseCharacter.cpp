@@ -1,0 +1,51 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "Characters/WarriorBaseCharacter.h"
+#include "AbilitySystem/WarriorAttributeSet.h"
+#include "AbilitySystem/WarriorAbilitySystemComponent.h"
+#include "MotionWarpingComponent.h"
+
+AWarriorBaseCharacter::AWarriorBaseCharacter()
+{
+	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bStartWithTickEnabled = false;
+
+	// 데칼이 캐릭터에 영향을 미치지 않도록 설정
+	GetMesh()->SetReceivesDecals(false);
+
+	WarriorAbilitySystemComponent = CreateDefaultSubobject<UWarriorAbilitySystemComponent>(TEXT("WarriorAbilitySystemComponent"));
+	WarriorAttributeSet = CreateDefaultSubobject<UWarriorAttributeSet>(TEXT("WarriorAttributeSet"));
+
+	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComponent"));
+}
+
+UAbilitySystemComponent* AWarriorBaseCharacter::GetAbilitySystemComponent() const
+{
+	return GetWarriorAbilitySystemComponent();
+}
+
+UPawnCombatComponent* AWarriorBaseCharacter::GetPawnCombatComponent() const
+{
+	return nullptr;
+}
+
+UPawnUIComponent* AWarriorBaseCharacter::GetPawnUIComponent() const
+{
+	return nullptr;
+}
+
+void AWarriorBaseCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	if (WarriorAbilitySystemComponent)
+	{
+		// 소유자 액터는 논리적 소유자, 아바타 액터는 월드에 존재하는 액터
+		WarriorAbilitySystemComponent->InitAbilityActorInfo(this, this);
+
+		// ensureMsgf는 조건이 false일 때 메시지를 출력하고 디버그 중단점을 발생시킴
+		ensureMsgf(!CharacterStartUpData.IsNull(), TEXT("Forgot to Assign start up data to %s"), *GetName());
+	}
+}
+
+
